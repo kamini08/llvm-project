@@ -1663,6 +1663,9 @@ static bool upgradeIntrinsicFunction1(Function *F, Function *&NewFn,
   }
   case 'o':
     if (Name.starts_with("objectsize.")) {
+      if (F->arg_empty() || !F->arg_begin()->getType()->isPointerTy())
+        break;
+
       Type *Tys[2] = { F->getReturnType(), F->arg_begin()->getType() };
       if (F->arg_size() == 2 || F->arg_size() == 3) {
         rename(F);
