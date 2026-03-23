@@ -94,3 +94,107 @@ class RemarksParser(BaseParser):
             )
         except Exception:
             return None
+
+    def parse_relational(self, file_path: str) -> dict:
+       
+        content = self.read_file_safe(file_path)
+        if content is None:
+            return {"error": "File too large or unreadable"}
+
+        # String interning tables: value -> integer id
+        file_table   = {}
+        pass_table   = {}
+        func_table   = {}
+
+        TYPE_MAP = {"!Passed": 0, "!Missed": 1, "!Analysis": 2}
+
+        def intern(table, value):
+            if value not in table:
+                table[value] = len(table)
+            return table[value]
+
+        rows = []
+
+        try:
+            loader = yaml.SafeLoader
+
+            # Track raw tag to encode remark_type
+            def make_tagged_constructor(tag):
+                def constructor(loader, node):
+                    d = loader.construct_mapping(node)
+                    d["__tag__"] = tag
+                    return d
+                return constructor
+
+            loader.add_constructor("!Passed",   make_tagged_constructor("!Passed"))
+            loader.add_constructor("!Missed",   make_tagged_constructor("!Missed"))
+            loader.add_constructor("!Analysis", make_tagged_constructor("!Analysis"))
+
+            for doc in yaml.load_all(content, Loader=loader):
+                if not doc:
+                    continue
+
+                tag      = doc.get("__tag__", "!Analysis")
+                rtype    = TYPE_MAP.get(tag, 2)
+
+                pass_name   = doc.get("Pass", "unknown")
+                func_name   = doc.get("Function", "unknown")
+                remark_name = doc.get("Name", "")
+
+                debug_loc = doc.get("DebugLoc") or {}
+                src_file  = debug_loc.get("File", "unknown")
+                line      = debug_loc.get("Line", 0) or 0
+                col       = debug_loc.get("Column", 0) or 0
+                hotness   = doc.get("Hotness", 0) or 0
+
+                # Reconstruct human-readable message from Args
+                args = doc.get("Args", []) or []
+                message_parts = []
+                for arg in args:
+                    if isinstance(arg, dict) and "String" in arg:
+                        message_parts.append(arg["String"])
+                    elif isinstance(arg, str):
+                        message_parts.append(arg)
+                message = "".join(message_parts) if message_parts else remark_name
+
+                encoded_args = []
+                for arg in args:
+                    if isinstance(arg, dict):
+                        for k, v in arg.items():
+                            if k != "DebugLoc" and k != "String":
+                                encoded_args.append({k: str(v)})
+
+                rows.append([
+                    intern(file_table,   src_file),   
+                    intern(pass_table,   pass_name),  
+                    intern(func_table,   func_name),  
+                    line,                             
+                    col,                              
+                    hotness,                          
+                    rtype,                            
+                    remark_name,                      
+                    message,
+                    encoded_args,                     
+                ])
+
+        except Exception as e:
+            return {"error": str(e), "dictionary": {}, "remarks": []}
+
+        def invert(table):
+            result = [""] * len(table)
+            for string, idx in table.items():
+                result[idx] = string
+            return result
+
+        return {
+            "dictionary": {
+                "files":     invert(file_table),
+                "passes":    invert(pass_table),
+                "functions": invert(func_table),
+            },
+            "remarks": rows,
+            "meta": {
+                "total": len(rows),
+                "source_file": file_path,
+            }
+        }
