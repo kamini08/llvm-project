@@ -26,16 +26,28 @@ class RemarksParser(BaseParser):
         try:
             remarks = []
             # Handle custom YAML tags by creating a loader
-            loader = yaml.SafeLoader
-            loader.add_constructor(
-                "!Passed", lambda loader, node: loader.construct_mapping(node)
-            )
-            loader.add_constructor(
-                "!Missed", lambda loader, node: loader.construct_mapping(node)
-            )
-            loader.add_constructor(
-                "!Analysis", lambda loader, node: loader.construct_mapping(node)
-            )
+            loader = type('AdvisorLoader', (yaml.SafeLoader,), {})
+
+            def make_tag_ctor(tag):
+                def ctor(l, node):
+                    d = l.construct_mapping(node)
+                    d["__tag__"] = tag
+                    return d
+                return ctor
+
+            for _tag in ["!Passed", "!Missed", "!Analysis"]:
+                loader.add_constructor(_tag, make_tag_ctor(_tag))
+
+            # Catch-all: handles !AnalysisFPCommute, !AnalysisAliasing, etc.
+            def catch_all(l, node):
+                try:
+                    d = l.construct_mapping(node)
+                except Exception:
+                    d = {}
+                d["__tag__"] = node.tag
+                return d
+
+            loader.add_constructor(None, catch_all)
 
             yaml_docs = yaml.load_all(content, Loader=loader)
 
@@ -116,19 +128,27 @@ class RemarksParser(BaseParser):
         rows = []
 
         try:
-            loader = yaml.SafeLoader
+            loader = type("RelationalLoader", (yaml.SafeLoader,), {})
 
-            # Track raw tag to encode remark_type
             def make_tagged_constructor(tag):
-                def constructor(loader, node):
-                    d = loader.construct_mapping(node)
+                def constructor(l, node):
+                    d = l.construct_mapping(node)
                     d["__tag__"] = tag
                     return d
                 return constructor
 
-            loader.add_constructor("!Passed",   make_tagged_constructor("!Passed"))
-            loader.add_constructor("!Missed",   make_tagged_constructor("!Missed"))
-            loader.add_constructor("!Analysis", make_tagged_constructor("!Analysis"))
+            for _tag in ["!Passed", "!Missed", "!Analysis"]:
+                loader.add_constructor(_tag, make_tagged_constructor(_tag))
+
+            def catch_all(l, node):
+                try:
+                    d = l.construct_mapping(node)
+                except Exception:
+                    d = {}
+                d["__tag__"] = node.tag
+                return d
+
+            loader.add_constructor(None, catch_all)
 
             for doc in yaml.load_all(content, Loader=loader):
                 if not doc:

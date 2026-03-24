@@ -387,7 +387,7 @@ class RemarksEndpoint(BaseSpecializedEndpoint):
                     c["remark_count"] += 1
 
                     # PGO hotness
-                    hotness = remark.args.get("Hotness", 0) if remark.args else 0
+                    hotness = 0  # hotness not stored on Remark dataclass; rely on static heuristics
                     if hotness:
                         c["heat_score"] += hotness
                         c["has_pgo"]     = True
