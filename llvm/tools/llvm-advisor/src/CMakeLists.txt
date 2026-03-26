@@ -45,10 +45,23 @@ set(LLVM_ADVISOR_CLANG_INCLUDE_DIRS
   ${LLVM_BINARY_DIR}/tools/clang/include
 )
 
+# Fallback for Clang source headers
+if(NOT LLVM_EXTERNAL_CLANG_SOURCE_DIR AND EXISTS "${LLVM_MAIN_SRC_DIR}/../clang")
+  set(LLVM_EXTERNAL_CLANG_SOURCE_DIR "${LLVM_MAIN_SRC_DIR}/../clang")
+endif()
+
 if(LLVM_EXTERNAL_CLANG_SOURCE_DIR)
   list(APPEND LLVM_ADVISOR_CLANG_INCLUDE_DIRS
     ${LLVM_EXTERNAL_CLANG_SOURCE_DIR}/include
   )
+endif()
+
+# Fallback for Clang generated headers and libraries if not in the same build tree
+if(NOT TARGET clangBasic)
+  find_package(Clang QUIET CONFIG)
+  if(Clang_FOUND)
+    list(APPEND LLVM_ADVISOR_CLANG_INCLUDE_DIRS ${CLANG_INCLUDE_DIRS})
+  endif()
 endif()
 
 target_include_directories(llvm-advisor PRIVATE

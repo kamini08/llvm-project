@@ -10,8 +10,8 @@ const Analytics = (() => {
   const RTYPE_LABEL = { 0: "Passed", 1: "Missed", 2: "Analysis" };
   const RTYPE_CLASS = { 0: "rtype-passed", 1: "rtype-missed", 2: "rtype-analysis" };
 
-  const ROW_HEIGHT  = 36;   // px — height of each remark row
-  const BUFFER_ROWS = 5;    // extra rows rendered above/below viewport
+  const ROW_HEIGHT  = 36;
+  const BUFFER_ROWS = 5;
 
   let state = {
     // raw data from API
@@ -501,7 +501,7 @@ const Analytics = (() => {
     else if (state.activeView === "diff")    buildDiffView(view);
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // Init
 
   async function load(unit) {
     state.loading = true;
@@ -528,58 +528,9 @@ const Analytics = (() => {
     render();
   }
 
-  function getSelectedUnit() {
-    const unitSel = el("unit-selector");
-    return unitSel ? unitSel.value || null : null;
-  }
-
   function init() {
     injectStyles();
-
-    const analyticsContent = el("analytics-content");
-
-    // 1. Auto-load when Analytics tab becomes visible via MutationObserver
-    if (analyticsContent) {
-      const observer = new MutationObserver(() => {
-        if (!analyticsContent.classList.contains("hidden") && state.remarks.length === 0 && !state.loading) {
-          load(getSelectedUnit());
-        }
-      });
-      observer.observe(analyticsContent, { attributes: true, attributeFilter: ["class"] });
-    }
-
-    // 2. Hook into the Analytics tab button directly for a reliable trigger
-    const tabBtn = el("tab-analytics");
-    if (tabBtn) {
-      tabBtn.addEventListener("click", () => {
-        // Small delay to let TabManager toggle the hidden class first
-        setTimeout(() => {
-          if (analyticsContent && !analyticsContent.classList.contains("hidden") && state.remarks.length === 0 && !state.loading) {
-            load(getSelectedUnit());
-          }
-        }, 50);
-      });
-    }
-
-    // 3. Reload data when user switches compilation unit (if Analytics is active)
-    const unitSel = el("unit-selector");
-    if (unitSel) {
-      unitSel.addEventListener("change", () => {
-        if (analyticsContent && !analyticsContent.classList.contains("hidden")) {
-          // Reset state and reload with new unit
-          state.remarks = [];
-          state.clusters = [];
-          state.filteredRows = [];
-          state.filterPass = "";
-          state.filterFunc = "";
-          state.filterRtype = "";
-          state.filterText = "";
-          load(getSelectedUnit());
-        }
-      });
-    }
-
-    console.log("Analytics module initialized");
+    console.log("📊 Analytics module initialized");
   }
 
   // Utility

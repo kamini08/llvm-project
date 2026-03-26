@@ -267,6 +267,11 @@ class LLVMAdvisorApp {
           await this.performanceManager.initialize();
         }
         break;
+      case 'analytics':
+        if (typeof Analytics !== 'undefined') {
+          Analytics.load(this.currentUnit);
+        }
+        break;
       }
     } catch (error) {
       console.error(`Error switching to tab ${tabId}:`, error);
@@ -291,6 +296,10 @@ class LLVMAdvisorApp {
     } else if (currentTab === 'explorer') {
       // Reload explorer files for new unit
       await this.explorer.loadAvailableFiles();
+    } else if (currentTab === 'analytics') {
+      if (typeof Analytics !== 'undefined') {
+        Analytics.load(unitName);
+      }
     }
 
     // If performance tab is active, notify performance manager
