@@ -155,6 +155,17 @@
       ]
     },
     {
+      "id": "llvm.remarks.relational",
+      "name": "Optimization remarks relational view",
+      "version": "1",
+      "runner": "builtin.remarks_relational",
+      "summary": "relational view requires an optimization remarks artifact",
+      "readiness": "L1",
+      "dependencies": [
+        "llvm.remarks.summary"
+      ]
+    },
+    {
       "id": "llvm.pass.stats",
       "name": "LLVM pass statistics",
       "version": "1",

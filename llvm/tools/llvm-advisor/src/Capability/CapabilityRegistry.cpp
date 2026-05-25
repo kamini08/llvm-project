@@ -38,6 +38,7 @@
 #include "Analysis/IR/PassTimingAnalyzer.h"
 #include "Analysis/IR/RemarksAnalyzer.h"
 #include "Analysis/IR/RemarksMixAnalyzer.h"
+#include "Analysis/IR/RemarksRelationalAnalyzer.h"
 #include "Analysis/IR/RemarksSizeDiffAnalyzer.h"
 #include "Analysis/IR/SimilarityAnalyzer.h"
 #include "Analysis/Inspection/AsmViewAnalyzer.h"
@@ -316,6 +317,8 @@ void CapabilityRegistry::addBuiltinRunners() {
       addRunner("builtin.remarks_mix", std::make_unique<RemarksMixAnalyzer>()));
   consumeError(addRunner("builtin.remarks_size_diff",
                          std::make_unique<RemarksSizeDiffAnalyzer>()));
+  consumeError(addRunner("builtin.remarks_relational",
+                         std::make_unique<RemarksRelationalAnalyzer>()));
 
   // Inspection analyzers
   consumeError(
