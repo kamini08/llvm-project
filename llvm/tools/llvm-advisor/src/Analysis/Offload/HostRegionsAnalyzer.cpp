@@ -84,7 +84,7 @@ HostRegionsAnalyzer::run(const CapabilityContext &Context) {
         F.HostAnnotations == 0)
       continue;
     json::Object Obj;
-    Obj["path"] = sys::path::filename(F.Path);
+    Obj["path"] = sys::path::filename(F.Path).str();
     Obj["omp_pragmas"] = F.OmpPragmas;
     Obj["device_kernels"] = F.DeviceKernels;
     Obj["global_kernels"] = F.GlobalKernels;

@@ -60,7 +60,7 @@ DeviceTraceAnalyzer::run(const CapabilityContext &Context) {
     if (!Name || !isKernelEvent(*Name))
       continue;
     json::Object K;
-    K["name"] = *Name;
+    K["name"] = Name->str();
     if (std::optional<int64_t> Ts = E->getInteger("ts"))
       K["timestamp_us"] = *Ts;
     if (std::optional<int64_t> Dur = E->getInteger("dur")) {

@@ -56,14 +56,13 @@ OffloadBinaryAnalyzer::run(const CapabilityContext &Context) {
     json::Object Entry;
     Entry["offload_kind"] = KindName;
     Entry["image_kind"] = object::getImageKindName(OB->getImageKind());
-    Entry["triple"] = OB->getTriple();
-    Entry["arch"] = OB->getArch();
+    Entry["triple"] = OB->getTriple().str();
+    Entry["arch"] = OB->getArch().str();
     Entry["image_size"] = static_cast<int64_t>(OB->getImage().size());
 
-    // Collect all string metadata (triple, arch, producer, etc.).
     json::Object Strings;
     for (auto [K, V] : OB->strings())
-      Strings[K] = V;
+      Strings[K.str()] = V.str();
     if (!Strings.empty())
       Entry["metadata"] = std::move(Strings);
 

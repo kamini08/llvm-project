@@ -28,16 +28,16 @@ AsmViewAnalyzer::run(const CapabilityContext &Context) {
   for (object::SectionRef Sec : Obj->getBinary()->sections()) {
     json::Object Item;
     if (Expected<StringRef> Name = Sec.getName())
-      Item["name"] = *Name;
+      Item["name"] = Name->str();
     else
-      Item["name"] = "";
+      Item["name"] = std::string();
     Item["size"] = static_cast<int64_t>(Sec.getSize());
     Item["is_text"] = Sec.isText();
     Sections.push_back(std::move(Item));
   }
 
   return makeJSONResult(getCapabilityID(), Context.Unit.ID, json::Object{
-      {"format", Obj->getBinary()->getFileFormatName()},
+      {"format", Obj->getBinary()->getFileFormatName().str()},
       {"sections", std::move(Sections)},
   });
 }
