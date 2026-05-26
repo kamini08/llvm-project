@@ -22,9 +22,9 @@ ReadObjAnalyzer::run(const CapabilityContext &Context) {
     for (object::SectionRef Sec : Obj.sections()) {
       json::Object S;
       if (Expected<StringRef> Name = Sec.getName())
-        S["name"] = *Name;
+        S["name"] = Name->str();
       else
-        S["name"] = "";
+        S["name"] = std::string();
       S["size"] = static_cast<int64_t>(Sec.getSize());
       Sections.push_back(std::move(S));
     }
@@ -33,7 +33,7 @@ ReadObjAnalyzer::run(const CapabilityContext &Context) {
     for (object::SymbolRef Sym : Obj.symbols()) {
       if (Expected<StringRef> Name = Sym.getName()) {
         json::Object S;
-        S["name"] = *Name;
+        S["name"] = Name->str();
         if (Expected<object::SymbolRef::Type> Ty = Sym.getType())
           S["type"] = static_cast<int64_t>(*Ty);
         Symbols.push_back(std::move(S));
@@ -41,7 +41,7 @@ ReadObjAnalyzer::run(const CapabilityContext &Context) {
     }
 
     return makeJSONResult(CapID, UnitID, json::Object{
-        {"format", Obj.getFileFormatName()},
+        {"format", Obj.getFileFormatName().str()},
         {"sections", std::move(Sections)},
         {"symbol_count", static_cast<int64_t>(Symbols.size())}});
   });

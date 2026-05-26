@@ -40,7 +40,7 @@ ObjectAnalyzer::run(const CapabilityContext &Context) {
   }
 
   return makeJSONResult(getCapabilityID(), Context.Unit.ID, json::Object{
-      {"format", Obj->getFileFormatName()},
+      {"format", Obj->getFileFormatName().str()},
       {"arch", Triple::getArchTypeName(Obj->getArch())},
       {"sections", static_cast<int64_t>(Sections)},
       {"symbols", static_cast<int64_t>(Symbols)}});
