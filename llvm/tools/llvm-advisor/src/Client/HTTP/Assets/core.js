@@ -10,6 +10,7 @@ const Icons = {
   compare: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,14 7,6 11,12 15,4 17,8"/></svg>`,
   timeline: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><polyline points="10,6 10,10 13,12"/></svg>`,
   insights: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="10,2 12,8 18,8 13,12 15,18 10,14 5,18 7,12 2,8 8,8"/></svg>`,
+  remarks: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="10" rx="1.5"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="9.5" x2="11" y2="9.5"/><polyline points="7,13 5,17 10,15 15,17 13,13"/></svg>`,
   settings: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10,2v3M10,15v3M2,10h3M15,10h3M4.2,4.2l2.1,2.1M13.7,13.7l2.1,2.1M4.2,15.8l2.1-2.1M13.7,6.3l2.1-2.1"/></svg>`,
   search: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8.5" cy="8.5" r="5"/><line x1="12.5" y1="12.5" x2="17" y2="17"/></svg>`,
   chevronDown: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,8 10,13 15,8"/></svg>`,

@@ -694,6 +694,7 @@ const Icons = {
   compare: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3,14 7,6 11,12 15,4 17,8"/></svg>`,
   timeline: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><polyline points="10,6 10,10 13,12"/></svg>`,
   insights: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="10,2 12,8 18,8 13,12 15,18 10,14 5,18 7,12 2,8 8,8"/></svg>`,
+  remarks: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="10" rx="1.5"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="9.5" x2="11" y2="9.5"/><polyline points="7,13 5,17 10,15 15,17 13,13"/></svg>`,
   settings: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><path d="M10,2v3M10,15v3M2,10h3M15,10h3M4.2,4.2l2.1,2.1M13.7,13.7l2.1,2.1M4.2,15.8l2.1-2.1M13.7,6.3l2.1-2.1"/></svg>`,
   search: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8.5" cy="8.5" r="5"/><line x1="12.5" y1="12.5" x2="17" y2="17"/></svg>`,
   chevronDown: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="5,8 10,13 15,8"/></svg>`,
@@ -2028,6 +2029,7 @@ const Shell = {
       { icon: 'compare', label: 'Compare', route: '/compare', shortcut: 'g c' },
       { icon: 'timeline', label: 'Timeline', route: '/timeline', shortcut: 'g t' },
       { icon: 'insights', label: 'Insights', route: '/insights', shortcut: 'g i' },
+      { icon: 'remarks', label: 'Remarks', route: '/remarks', shortcut: 'g r' },
       { icon: 'settings', label: 'Settings', route: '/settings', shortcut: 'g s' },
     ];
 
@@ -2154,6 +2156,7 @@ const CommandPalette = {
     { label: 'Go to Compare', shortcut: 'g c', action: () => Router.navigate('/compare') },
     { label: 'Go to Timeline', shortcut: 'g t', action: () => Router.navigate('/timeline') },
     { label: 'Go to Insights', shortcut: 'g i', action: () => Router.navigate('/insights') },
+    { label: 'Go to Remarks', shortcut: 'g r', action: () => Router.navigate('/remarks') },
     { label: 'Go to Settings', shortcut: 'g s', action: () => Router.navigate('/settings') },
   ],
 
@@ -4313,6 +4316,54 @@ const InsightsView = {
       return wrap;
     }
 
+    if (name === 'compilation_flow') {
+      const stages = Array.isArray(d.stages) ? d.stages : [];
+      const total = d.total_duration_ms || 0;
+      const slowest = d.slowest_event || {};
+      const metrics = h('div', { class: 'mini-metrics' });
+      metrics.appendChild(h('div', { class: 'mini-metric' },
+        h('span', {}, 'Total Time'), h('strong', { class: 'mono' }, `${total} ms`)));
+      if (slowest.name) {
+        metrics.appendChild(h('div', { class: 'mini-metric' },
+          h('span', {}, 'Slowest Event'),
+          h('strong', { class: 'mono', style: { fontSize: '10px' } }, slowest.name)));
+        metrics.appendChild(h('div', { class: 'mini-metric' },
+          h('span', {}, 'Slowest Time'),
+          h('strong', { class: 'mono' }, `${Math.round((slowest.duration_us || 0) / 1000)} ms`)));
+      }
+      wrap.appendChild(metrics);
+      if (stages.length) {
+        const colors = { frontend: '#5B8DB8', optimizer: '#D4A574', codegen: '#9DB86E', other: '#C97DB8' };
+        // Stacked horizontal bar
+        const bar = h('div', { style: { display: 'flex', height: '28px', borderRadius: '4px', overflow: 'hidden', margin: '12px 0 4px' } });
+        stages.forEach(s => {
+          const pct = s.pct_of_total || 0;
+          if (pct <= 0) return;
+          const color = colors[s.stage] || '#9B7DB8';
+          const seg = h('div', {
+            style: { width: `${pct}%`, background: color, display: 'flex', alignItems: 'center',
+                     justifyContent: 'center', overflow: 'hidden', whiteSpace: 'nowrap' },
+            title: `${s.stage}: ${s.duration_ms} ms (${pct}%)`,
+          }, pct > 8 ? h('span', { style: { fontSize: '10px', color: '#fff', fontWeight: '600' } }, s.stage) : null);
+          bar.appendChild(seg);
+        });
+        wrap.appendChild(bar);
+        // Legend rows
+        const legend = h('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } });
+        stages.forEach(s => {
+          const color = colors[s.stage] || '#9B7DB8';
+          legend.appendChild(h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' } },
+            h('i', { style: { width: '10px', height: '10px', borderRadius: '2px', background: color, flexShrink: '0', display: 'inline-block' } }),
+            h('span', { style: { color: 'var(--fg2)', minWidth: '80px' } }, s.stage),
+            h('span', { class: 'mono' }, `${s.duration_ms} ms`),
+            h('span', { style: { color: 'var(--fg3)', marginLeft: '4px' } }, `${s.pct_of_total}%`)
+          ));
+        });
+        wrap.appendChild(legend);
+      }
+      return wrap;
+    }
+
     if (name === 'metric_trends') {
       const metrics = h('div', { class: 'mini-metrics' });
       metrics.appendChild(h('div', { class: 'mini-metric' }, h('span', {}, 'Functions'), h('strong', { class: 'mono' }, formatNumber(d.functions || 0))));
@@ -4344,6 +4395,193 @@ const InsightsView = {
     }
 
     return null;
+  },
+};
+
+/* ============================================================
+   LLVM Advisor — Remarks Explorer View
+   ============================================================ */
+
+const RemarksView = {
+  async render() {
+    const snap = State.get('currentSnapshot');
+    const container = h('div', {});
+    container.appendChild(h('div', { class: 'section-header' }, 'Optimization Remarks Explorer'));
+    Shell.renderMain(container);
+
+    if (!snap) {
+      container.appendChild(h('div', { class: 'empty-state' },
+        h('div', {}, 'Select a snapshot first')));
+      return;
+    }
+
+    const skeleton = h('div', { class: 'dashboard-skeleton', style: { padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' } },
+      h('div', { style: { height: '80px', background: 'var(--bg2)', borderRadius: '8px', animation: 'shimmer 1.5s infinite' } }),
+      h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' } },
+        h('div', { style: { height: '200px', background: 'var(--bg2)', borderRadius: '8px', animation: 'shimmer 1.5s infinite' } }),
+        h('div', { style: { height: '200px', background: 'var(--bg2)', borderRadius: '8px', animation: 'shimmer 1.5s infinite' } })
+      )
+    );
+    container.appendChild(skeleton);
+
+    const [relRes, queryRes] = await Promise.all([
+      API.get(`/snapshots/${snap.id}/remarks/relational`),
+      API.querySnapshot(snap.id, ['llvm.remarks.summary']),
+    ]);
+
+    if (skeleton.parentNode) skeleton.parentNode.removeChild(skeleton);
+
+    if (!relRes.ok && !queryRes.ok) {
+      container.appendChild(UI.errorCard(
+        'No remarks data available. Capture with llvm.remarks.summary enabled.',
+        () => this.render()
+      ));
+      return;
+    }
+
+    const rel = relRes.ok && relRes.data ? relRes.data : null;
+    const queryUnits = queryRes.ok && Array.isArray(queryRes.data) ? queryRes.data : [];
+
+    // Top-level summary from summary capability
+    const byPass = {}, byType = {};
+    let totalRemarks = 0;
+    queryUnits.forEach(u => {
+      const results = CapabilityData.normalizeResults(u.results || []);
+      results.filter(r => r.capability === 'llvm.remarks.summary').forEach(res => {
+        const v = res.value || {};
+        totalRemarks += Number(v.count || v.remark_count || 0);
+        if (v.by_pass) Object.entries(v.by_pass).forEach(([p, c]) => { byPass[p] = (byPass[p] || 0) + Number(c); });
+        if (v.by_type) Object.entries(v.by_type).forEach(([t, c]) => { byType[t] = (byType[t] || 0) + Number(c); });
+      });
+    });
+
+    // Header stat row
+    const statRow = h('div', { class: 'metric-cards', style: { marginBottom: '18px' } });
+    statRow.appendChild(UI.metric('Total Remarks', totalRemarks));
+    statRow.appendChild(UI.metric('Units', queryUnits.length));
+    if (rel) statRow.appendChild(UI.metric('Relational Rows', rel.count || 0));
+    container.appendChild(statRow);
+
+    const grid = h('div', { class: 'overview-grid', style: { marginTop: '0' } });
+
+    // Pass distribution bar chart
+    const passEntries = Object.entries(byPass).sort((a, b) => b[1] - a[1]);
+    if (passEntries.length) {
+      const passData = passEntries.slice(0, 12).map(([label, amount]) => ({ label, amount }));
+      const section = h('div', { class: 'chart-section' },
+        h('h3', {}, 'Remarks by Pass'),
+        UI.barChart(passData)
+      );
+      grid.appendChild(section);
+    }
+
+    // Remark type donut
+    const typeEntries = Object.entries(byType).filter(([, v]) => v > 0);
+    if (typeEntries.length) {
+      const typeData = typeEntries.map(([label, value]) => ({
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        value,
+      }));
+      const donut = UI.donutChart(typeData);
+      if (donut) {
+        grid.appendChild(h('div', { class: 'chart-section' },
+          h('h3', {}, 'By Remark Type'),
+          donut
+        ));
+      }
+    }
+
+    // Per-unit remark distribution (long tail)
+    const unitRemarks = queryUnits.map(u => {
+      const results = CapabilityData.normalizeResults(u.results || []);
+      const rem = results.filter(r => r.capability === 'llvm.remarks.summary')
+        .reduce((s, r) => s + Number(r.value?.count || r.value?.remark_count || 0), 0);
+      return { unit_id: u.unit_id, source_path: u.source_path, remarks: rem };
+    }).filter(u => u.remarks > 0).sort((a, b) => b.remarks - a.remarks);
+
+    if (unitRemarks.length) {
+      const flameItems = unitRemarks.slice(0, 10).map(u => {
+        const path = u.source_path || u.unit_id || '';
+        const file = path.replace(/\\/g, '/').split('/').pop() || path;
+        return { label: file, value: u.remarks };
+      });
+      const section = h('div', { class: 'chart-section' },
+        h('h3', {}, 'Remarks per Unit (top 10)')
+      );
+      const flame = UI.flameBars(flameItems);
+      if (flame) section.appendChild(flame);
+      // Legend with links
+      const legend = h('div', { style: { marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px' } });
+      const colors = ['#5B8DB8', '#5DB8A8', '#D4A574', '#9DB86E', '#C97DB8', '#9B7DB8', '#D48B9B', '#6EC9C4', '#5B8DB8', '#D4A574'];
+      unitRemarks.slice(0, 10).forEach((u, i) => {
+        const path = u.source_path || u.unit_id || '';
+        const file = path.replace(/\\/g, '/').split('/').pop() || path;
+        legend.appendChild(h('span', {
+          style: { display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' },
+          onClick: () => Router.navigate(`/units/${encodeURIComponent(u.unit_id)}?snapshot=${encodeURIComponent(snap.id)}`),
+        },
+          h('i', { style: { width: '8px', height: '8px', borderRadius: '2px', background: colors[i], display: 'inline-block', flexShrink: '0' } }),
+          `${file}: ${formatNumber(u.remarks)}`
+        ));
+      });
+      section.appendChild(legend);
+      grid.appendChild(section);
+    }
+
+    container.appendChild(grid);
+
+    // Relational table — top (pass, name) tuples
+    if (rel && rel.columns && rel.strings) {
+      const { columns, strings } = rel;
+      const passes = strings.pass || [];
+      const names = strings.name || [];
+      const types = [null, 'passed', 'missed', 'analysis', 'analysis-fp-commute', 'analysis-aliasing', 'failure'];
+
+      // Count (pass, name) tuples
+      const tuples = {};
+      const passCols = columns.pass || [];
+      const nameCols = columns.name || [];
+      const typeCols = columns.type || [];
+      for (let i = 0; i < passCols.length; i++) {
+        const p = passes[passCols[i]] || '?';
+        const n = names[nameCols[i]] || '?';
+        const key = `${p}\0${n}`;
+        if (!tuples[key]) tuples[key] = { pass: p, name: n, by_type: {} };
+        const typeName = types[typeCols[i]] || 'unknown';
+        tuples[key].by_type[typeName] = (tuples[key].by_type[typeName] || 0) + 1;
+        tuples[key].count = (tuples[key].count || 0) + 1;
+      }
+
+      const sorted = Object.values(tuples).sort((a, b) => b.count - a.count).slice(0, 20);
+      if (sorted.length) {
+        const tableSection = h('div', { class: 'chart-section', style: { marginTop: '18px' } },
+          h('h3', {}, `Top (Pass, Remark) Pairs — ${rel.count} total remarks`)
+        );
+        const table = h('table', { class: 'top-units-table' },
+          h('thead', {}, h('tr', {},
+            h('th', {}, 'Pass'), h('th', {}, 'Remark'),
+            h('th', { style: { textAlign: 'right' } }, 'Count'),
+            h('th', { style: { textAlign: 'right' } }, 'Missed'),
+            h('th', { style: { textAlign: 'right' } }, 'Passed'),
+          ))
+        );
+        const tbody = h('tbody', {});
+        sorted.forEach(t => {
+          tbody.appendChild(h('tr', {},
+            h('td', { class: 'mono', style: { fontSize: '11px' } }, t.pass),
+            h('td', { style: { fontSize: '11px' } }, t.name),
+            h('td', { class: 'num' }, formatNumber(t.count)),
+            h('td', { class: 'num', style: { color: (t.by_type.missed || 0) > 0 ? 'var(--orange)' : 'var(--fg3)' } },
+              t.by_type.missed ? formatNumber(t.by_type.missed) : '–'),
+            h('td', { class: 'num', style: { color: (t.by_type.passed || 0) > 0 ? 'var(--green)' : 'var(--fg3)' } },
+              t.by_type.passed ? formatNumber(t.by_type.passed) : '–'),
+          ));
+        });
+        table.appendChild(tbody);
+        tableSection.appendChild(h('div', { class: 'top-units-wrap' }, table));
+        container.appendChild(tableSection);
+      }
+    }
   },
 };
 
