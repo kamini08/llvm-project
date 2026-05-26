@@ -70,7 +70,6 @@ OptimizationDeltaInsight::analyze(const InsightInput &Input) const {
     });
   }
 
-  // Diff by_type (Passed/Missed/Analysis).
   json::Object TypeDeltas;
   StringSet<> TypeSeen;
   StringMap<int64_t> PrimaryTypes, BaselineTypes;

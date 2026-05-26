@@ -53,9 +53,9 @@ PassImpactInsight::analyze(const InsightInput &Input) const {
   }
 
   int64_t Passed = 0, Missed = 0;
-  if (auto V = TypeBreakdown.getInteger("Passed"))
+  if (auto V = TypeBreakdown.getInteger("passed"))
     Passed = *V;
-  if (auto V = TypeBreakdown.getInteger("Missed"))
+  if (auto V = TypeBreakdown.getInteger("missed"))
     Missed = *V;
   double HitRate =
       (Passed + Missed) > 0 ? 100.0 * Passed / (Passed + Missed) : 0.0;
