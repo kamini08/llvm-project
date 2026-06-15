@@ -27,8 +27,8 @@ PreprocessorAnalyzer::run(const CapabilityContext &Context) {
 
   // Count macro definitions visible at end of translation unit.
   MacroStats Stats;
-  for (auto It = PP.macro_begin(), End = PP.macro_end(); It != End; ++It)
-    Stats.account(getMacroInfo(It->second));
+  for (const auto &Entry : PP.macros())
+    Stats.account(getMacroInfo(Entry.second));
 
   // Derive line count from the main file buffer. Empty files report 0 lines;
   // otherwise count newline characters and add one for the final line if it

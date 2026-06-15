@@ -68,19 +68,6 @@ llvm::advisor::makeUnavailableResult(StringRef CapabilityID, StringRef UnitID,
                    {"reason", Reason.str()}});
 }
 
-std::unique_ptr<JSONCapabilityResult>
-llvm::advisor::makeUnavailableResult(StringRef CapabilityID, StringRef UnitID,
-                                      StringRef Reason, StringRef Summary) {
-  json::Object Obj;
-  Obj["capability"] = CapabilityID.str();
-  Obj["unit_id"] = UnitID.str();
-  Obj["available"] = false;
-  Obj["reason"] = Reason.str();
-  if (!Summary.empty())
-    Obj["summary"] = Summary.str();
-  return std::make_unique<JSONCapabilityResult>(std::move(Obj));
-}
-
 // SimpleAnalyzer serves as a base for capabilities that have no dedicated
 // analyzer implementation yet, reporting unavailable until one is provided.
 Expected<std::unique_ptr<CapabilityResult>>

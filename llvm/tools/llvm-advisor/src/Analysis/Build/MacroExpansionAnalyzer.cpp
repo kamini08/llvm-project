@@ -34,13 +34,13 @@ MacroExpansionAnalyzer::run(const CapabilityContext &Context) {
   SmallVector<MacroEntry, 256> Entries;
   MacroStats Stats;
 
-  for (auto It = PP.macro_begin(), End = PP.macro_end(); It != End; ++It) {
-    const clang::MacroInfo *MI = getMacroInfo(It->second);
+  for (const auto &Entry : PP.macros()) {
+    const clang::MacroInfo *MI = getMacroInfo(Entry.second);
     if (!MI)
       continue;
     Stats.account(MI);
     MacroEntry E;
-    E.Name = It->first->getName().str();
+    E.Name = Entry.first->getName().str();
     E.IsFunctionLike = MI->isFunctionLike();
     E.IsBuiltin = MI->isBuiltinMacro();
     E.NumTokens = static_cast<int>(MI->getNumTokens());

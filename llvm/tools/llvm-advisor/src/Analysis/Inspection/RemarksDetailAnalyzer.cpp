@@ -20,14 +20,8 @@ RemarksDetailAnalyzer::run(const CapabilityContext &Context) {
       Context, CapID, UnitID,
       [&](StringRef Path) -> Expected<std::unique_ptr<CapabilityResult>> {
         json::Array Items;
-        bool Truncated = false;
-        constexpr size_t Limit = 100000;
         if (Error E = foreachRemark(
                 Path, [&](const remarks::Remark &R) -> Error {
-                  if (Items.size() >= Limit) {
-                    Truncated = true;
-                    return Error::success();
-                  }
                   // All StringRef fields point into the MemoryBuffer; copy to
                   // std::string before storing as json::Value because
                   // json::Value(StringRef) stores T_StringRef (non-owning).
@@ -53,7 +47,6 @@ RemarksDetailAnalyzer::run(const CapabilityContext &Context) {
         return makeJSONResult(CapID, UnitID, json::Object{
             {"remarks_path", Path.str()},
             {"count", static_cast<int64_t>(Items.size())},
-            {"truncated", Truncated},
             {"remarks", std::move(Items)}});
       });
 }
