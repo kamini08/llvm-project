@@ -227,6 +227,15 @@ const UnitDetailView = {
     }
 
     if (tab === 'Remarks') {
+      const relResult = state.byCapability.get('llvm.remarks.relational');
+      if (relResult && relResult.available && relResult.value && relResult.value.columns) {
+        const v = relResult.value;
+        const rel = { count: v.count || 0, columns: v.columns || {}, strings: v.strings || {} };
+        const total = rel.count || 0;
+        const filtered = new Int32Array(total);
+        for (let i = 0; i < total; i++) filtered[i] = i;
+        return RemarksView._renderTriageGrid(rel, null, filtered, total);
+      }
       const findings = state.results
         .filter(r => r.capability.includes('remarks'))
         .flatMap(r => r.findings);
@@ -304,7 +313,7 @@ const UnitDetailView = {
     const capRes = await API.capabilities();
     const caps = Array.isArray(capRes.data)
       ? capRes.data.filter(spec => CapabilityData.shouldQueryCapability(spec, 'unit')).map(c => c.id).filter(Boolean)
-      : ['clang.diag.summary', 'llvm.ir.function_stats', 'llvm.obj.summary', 'llvm.remarks.summary', 'llvm.remarks.detail'];
+      : ['clang.diag.summary', 'llvm.ir.function_stats', 'llvm.obj.summary', 'llvm.remarks.summary', 'llvm.remarks.detail', 'llvm.remarks.relational'];
     const res = await API.queryUnit(unit.id, caps);
     if (!res.ok) {
       if (main) main.appendChild(UI.errorCard(res.error || 'query failed', () => this.render({ id: unit.id, snapshot: unit.snapshot_id || State.get('currentSnapshot')?.id })));
