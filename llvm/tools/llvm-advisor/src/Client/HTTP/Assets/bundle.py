@@ -69,6 +69,8 @@ def main():
       Router.register('/compare', params => CompareView.render(params));
       Router.register('/timeline', () => TimelineView.render());
       Router.register('/insights', () => InsightsView.render());
+      Router.register('/remarks', () => RemarksView.render());
+      Router.register('/heatmap', () => HeatmapView.render());
       Router.register('/settings', () => SettingsView.render());
       Shell.init();
       Keys.init();
