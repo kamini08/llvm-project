@@ -73,7 +73,7 @@ const OverviewView = {
 
     // Query core capabilities only — avoid expensive/unstable capabilities
     const coreCaps = ['llvm.ir.summary', 'llvm.ir.function_stats', 'clang.diag.summary',
-                      'llvm.obj.summary', 'llvm.remarks.summary', 'llvm.remarks.detail',
+                      'llvm.obj.summary', 'llvm.remarks.summary',
                       'llvm.debug.summary', 'clang.ast.summary',
                       'llvm.lto.summary', 'llvm.lto.function_stats'];
     const registeredIds = new Set(specs.map(s => s.id));
