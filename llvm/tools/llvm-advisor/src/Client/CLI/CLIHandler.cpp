@@ -184,6 +184,8 @@ cl::SubCommand RuntimeIngestCmd("runtime-ingest",
                                 "Ingest runtime execution data");
 cl::SubCommand RuntimeCorrelateCmd("runtime-correlate",
                                    "Correlate runtime data to captured units");
+cl::SubCommand ImportCmd("import",
+                         "Create a snapshot from standalone remarks files");
 
 cl::opt<std::string> CaptureSourceRoot("source-root",
                                        cl::desc("Source root (default: auto)"),
@@ -195,6 +197,15 @@ cl::opt<std::string> CaptureBuildRoot(
 cl::opt<std::string> CaptureProfile("profile",
                                     cl::desc("Capture profile JSON path"),
                                     cl::init(""), cl::sub(CaptureCmd));
+
+cl::list<std::string> ImportFiles(cl::Positional, cl::desc("<remark files>"),
+                                  cl::OneOrMore, cl::sub(ImportCmd));
+cl::opt<std::string> ImportSourceRoot("source-root",
+                                      cl::desc("Source root for path resolution"),
+                                      cl::init(""), cl::sub(ImportCmd));
+cl::list<std::string> ImportCapabilities(
+    "capability", cl::desc("Capability to run (repeatable)"),
+    cl::ZeroOrMore, cl::sub(ImportCmd));
 cl::list<std::string> CaptureCapabilities(
     "capability",
     cl::desc("Capability ID; may be repeated; overrides --profile"),
@@ -776,6 +787,27 @@ int CLIHandler::run(int argc, char **argv) {
     if (!Result)
       return printError(Result.takeError());
     outs() << json::Value(std::move(*Result)) << '\n';
+    return 0;
+  }
+
+  if (ImportCmd) {
+    SmallVector<std::string, 8> Paths(ImportFiles.begin(), ImportFiles.end());
+    SmallVector<std::string, 4> Caps(ImportCapabilities.begin(),
+                                     ImportCapabilities.end());
+    std::string SrcRoot = ImportSourceRoot.getValue();
+    if (SrcRoot.empty()) {
+      SmallString<256> CWD;
+      sys::fs::current_path(CWD);
+      SrcRoot = CWD.str().str();
+    }
+    Expected<SnapshotRecord> Snap =
+        (*Client)->importRemarks(Paths, SrcRoot, Caps);
+    if (!Snap)
+      return printError(Snap.takeError());
+    outs() << formatv("Snapshot {0} created — {1} file(s)\n",
+                      Snap->ID.substr(0, 8),
+                      Paths.size());
+    outs() << formatv("  Full ID: {0}\n", Snap->ID);
     return 0;
   }
 
