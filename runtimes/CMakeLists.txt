@@ -354,6 +354,11 @@ endfunction()
 
 foreach(entry ${runtimes})
   get_filename_component(projName ${entry} NAME)
+    # Set compiler for openmp to use clang from llvm-build-offload
+    if ("${projName}" STREQUAL "openmp")
+        set(CMAKE_C_COMPILER "/home/kamini/projects/llvm-build-offload/bin/clang" CACHE STRING "C compiler" FORCE)
+        set(CMAKE_CXX_COMPILER "/home/kamini/projects/llvm-build-offload/bin/clang++" CACHE STRING "C++ compiler" FORCE)
+    endif()
 
   # TODO: Clean this up as part of an interface standardization
   string(REPLACE "-" "_" canon_name ${projName})
@@ -408,6 +413,11 @@ endif()
 # other runtimes are added.
 foreach(entry ${runtimes})
   get_filename_component(projName ${entry} NAME)
+    # Set compiler for openmp to use clang from llvm-build-offload
+    if ("${projName}" STREQUAL "openmp")
+        set(CMAKE_C_COMPILER "/home/kamini/projects/llvm-build-offload/bin/clang" CACHE STRING "C compiler" FORCE)
+        set(CMAKE_CXX_COMPILER "/home/kamini/projects/llvm-build-offload/bin/clang++" CACHE STRING "C++ compiler" FORCE)
+    endif()
 
   add_subdirectory(${entry} ${projName})
 endforeach()
